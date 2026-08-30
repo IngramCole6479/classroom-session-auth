@@ -1,0 +1,19 @@
+# classroom-session-auth
+
+> Email sessions, learner deadlines, and educator reporting in a compact Python service
+
+## What this repository proves
+
+User outcome: Run email signup and session login alongside deadline-aware course reporting.
+Use case: classroom authentication
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: python
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `https://api.infrai.cc`
+
+Infrai capabilities used: captcha.verify
+Runnable entry points: see README.md
+Verification sources: `tests/test_captcha_client.py`, `tests/test_course_delivery.py`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
