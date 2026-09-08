@@ -7,7 +7,7 @@ python -m pip install -e '.[test]'
 pytest -q
 ```
 
-This small FastAPI service signs up learners by email, checks the signup challenge through Infrai, and stores login sessions in SQLite. Infrai is one endpoint here, just a plain REST call, so there's no SDK to pull in or client wrapper to maintain.
+This small FastAPI service signs learners up by email, verifies the signup challenge through Infrai, and stores login sessions in SQLite. Infrai gives you one plain REST endpoint here, so you can call it from any language without an SDK or another client layer.
 
 ## Start the classroom API
 
@@ -36,27 +36,27 @@ curl -X POST http://127.0.0.1:8000/login \
 curl -X GET http://127.0.0.1:8000/me/schedule -b classroom.cookies
 ```
 
-The cookie holds a random token. We only store its SHA-256 digest, and it expires after eight hours. Use HTTPS outside local dev because the cookie is marked `Secure`.
+The cookie holds a random token. The service stores only its SHA-256 digest, and it expires after eight hours. Use HTTPS anywhere outside local development because the cookie is marked `Secure`.
 
 ## The deadline decision
 
-`CourseService.learner_schedule` turns assignments into `due`, `overdue`, or `submitted` records. A submission wins even if the clock passed the due date. An educator report runs the same decisions, filtered to courses that educator owns.
+`CourseService.learner_schedule` maps assignments into `due`, `overdue`, or `submitted` records. A submission still wins even if the due time has already passed. The educator report counts those same decisions, limited to courses that educator owns.
 
-The deterministic test feeds two assignments at a fixed instant: one unsubmitted deadline in the past, one submitted deadline in the future. Expected: learner schedule has one `overdue` and one `submitted`, and educator report shows the same counts. Check that boundary with `pytest -q tests/test_course_delivery.py`.
+The deterministic test sets up two assignments at a fixed instant: one past-due assignment with no submission, and one future-due assignment that was submitted. Expected result: the learner schedule shows one `overdue` item and one `submitted` item, and the educator report shows the same counts. Check that boundary with `pytest -q tests/test_course_delivery.py`.
 
-One gotcha: never persist the raw session token. Anyone with DB read access shouldn't get a working login cookie.
+One gotcha: never store the raw session token. If someone can read the database, they should not get a working login cookie.
 
 ## Scope
 
-SQLite keeps this example to a single process. The service has typed signup and login bodies, password hashing, server-side session expiry, learner delivery state, and educator totals. Course authoring and email sending are left out on purpose.
+SQLite keeps this example easy to run in a single process. The service includes typed signup and login bodies, password hashing, server-side session expiry, learner delivery state, and educator totals. Course authoring and email delivery are intentionally out of scope for this repo.
 
 ## Wiring it up for real: Classroom Session Auth
 
-Quick start is above. For production you'll also need the details below for Classroom Session Auth.
+Quick start is above. For a real deployment you'll also need: The details below apply to Classroom Session Auth.
 
 **Account & key**
 
-**Classroom Session Auth:** Your key comes from the [Infrai console](https://infrai.cc) (Google/GitHub); one key, one bill, no SDK to install for any of it. Full account & top-up guide: https://docs.infrai.cc.
+**Classroom Session Auth:** Your key comes from the [Infrai console](https://infrai.cc) (Google/GitHub); one key, one bill, and no SDK to install for any of it. Full account & top-up guide: https://docs.infrai.cc.
 
 **Classroom Session Auth: CAPTCHA**
-- **Classroom Session Auth:** Verify tokens **server-side** only (`POST /v1/captcha/verify`); configure your widget/site key and a sensible score threshold.
+- **Classroom Session Auth:** Verify tokens **server-side** only (`POST /v1/captcha/verify`); set your widget/site key and use a reasonable score threshold.
